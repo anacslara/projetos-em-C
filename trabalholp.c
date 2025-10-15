@@ -1,0 +1,464 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char cnpj[20];
+    char nome[50];
+    char razsocial[100];
+    char endereco[100];
+    char inscricao[20]; //se não tiver considerar isento
+    char tel[15];
+    char email[50];
+    char contato[50];
+}clientes;
+
+typedef struct {
+    char descricao[20];  // descrição do item 
+    int quantidade;      // quantidade pedida
+}itens;
+
+typedef struct {
+    int numpedido;
+    char cnpj[20];
+    char datpedido[11];
+    char datentrega[11];
+    int preventrega;
+    itens item[6];
+    float totalped;
+    char pagamento[10];
+}pedidos;
+
+void inserircliente(FILE *arq1);
+void inserirpedido(FILE *arq2);
+void consultar(pedidos pedido);
+
+int main( ){
+    int aux, opcao;
+    FILE *arq1; FILE *arq2;
+    arq1 = fopen("clientes.dat", "ab");
+    arq2 = fopen("pedidos.dat", "ab");
+
+    if(arq1 == NULL || arq2 == NULL){      
+        printf("Erro!");
+        system("pause");
+        return 0;
+    }
+
+    clientes cliente;
+    pedidos pedido;
+
+    for(int i=0; i<10; i++){
+        inserircliente(arq1);
+    }
+
+    for(int j=0; j<20; j++){
+        inserirpedido(arq2);
+    }
+
+    fclose(arq1);
+    fclose(arq2);
+
+    printf("arquivo cliente(digite): 0-nenhum, 1-inserir, 2-alterar, 3-excluir, 4-consultar\n");
+    scanf("%d",&aux);
+    getchar();
+    
+    while (aux>0 && aux<5){
+        
+        if(aux == 1){
+            arq1 = fopen("clientes.dat", "rb+");
+            if(arq1 == NULL){      
+                printf("Erro!");
+                system("pause");
+                return 0;
+            }
+            inserircliente(arq1);
+            fclose(arq1);
+        }
+
+        if(aux == 2){
+            arq1 = fopen("clientes.dat", "rb+");
+            if(arq1 == NULL){      
+                printf("Erro!");
+                system("pause");
+                return 0;
+            }
+            char cnpjcliente[20]={'\0'};
+            printf("cnpj do cliente que você deseja alterar:");
+            fgets(cnpjcliente, sizeof(cnpjcliente), stdin);
+            cnpjcliente[strcspn(cnpjcliente, "\n")] = '\0';
+            while(fread(&cliente, sizeof(clientes), 1, arq1) == 1){
+                if(strcmp(cliente.cnpj, cnpjcliente) == 0){
+                    fseek(arq1, -sizeof(clientes), SEEK_CUR);
+                    inserircliente(arq1);
+                    fclose(arq1);
+                    break;
+                }
+            }
+
+        }
+
+        if(aux == 3){
+            FILE *arqaux = fopen("arqaux.dat", "wb");
+            arq1 = fopen("clientes.dat", "rb");
+            if(arq1 == NULL || arqaux == NULL){      
+                printf("Erro!");
+                system("pause");
+                return 0;
+            }
+            char cnpjcliente[20]={'\0'};
+            printf("cnpj do cliente que você deseja excluir:");
+            fgets(cnpjcliente, sizeof(cnpjcliente), stdin);
+            cnpjcliente[strcspn(cnpjcliente, "\n")] = '\0';
+            while(fread(&cliente, sizeof(clientes), 1, arq1) == 1){
+                if(strcmp(cliente.cnpj, cnpjcliente) != 0){
+                    fwrite(&cliente, sizeof(clientes), 1, arqaux);
+                }
+            }
+            fclose(arq1);
+            fclose(arqaux);
+            remove("clientes.dat");
+            rename("arqaux.dat", "clientes.dat");
+        }
+
+        if(aux == 4){
+            arq1 = fopen("clientes.dat", "rb");
+            if(arq1 == NULL){      
+                printf("Erro!");
+                system("pause");
+                return 0;
+            }
+            char cnpjcliente[20]={'\0'};
+            printf("cnpj do cliente que você deseja consultar:");
+            fgets(cnpjcliente, sizeof(cnpjcliente), stdin);
+            cnpjcliente[strcspn(cnpjcliente, "\n")] = '\0';
+            while(fread(&cliente, sizeof(clientes), 1, arq1) == 1 ){
+                if(strcmp(cliente.cnpj, cnpjcliente) == 0){
+                    printf("CNPJ: %s\n", cliente.cnpj);
+                    printf("NOME: %s\n", cliente.nome);
+                    printf("RAZÃO SOCIAL: %s\n", cliente.razsocial);
+                    printf("ENDEREÇO: %s\n", cliente.endereco);
+                    printf("INSCRIÇÃO: %s\n", cliente.inscricao);
+                    printf("TELEFONE: %s\n", cliente.tel);
+                    printf("EMAIL: %s\n", cliente.email);
+                    printf("CONTATO: %s\n", cliente.contato);
+                    fclose(arq1);
+                    break;
+                }
+            }
+        }
+
+        printf("arquivo cliente(digite): 0-nenhum, 1-inserir, 2-alterar, 3-excluir, 4-consultar\n");
+        scanf("%d",&aux);
+        getchar();
+    }
+ 
+    printf("arquivo pedido(digite): 0-nenhum, 1-inserir, 2-alterar, 3-excluir, 4-consultar\n");
+    scanf("%d",&aux);
+    getchar();
+
+    while (aux>0 && aux<5){
+        if(aux == 1){
+            arq2 = fopen("pedidos.dat", "rb+");
+            if(arq2 == NULL){      
+                printf("Erro!");
+                system("pause");
+                return 0;
+            }
+            inserirpedido(arq2);
+            fclose(arq2);
+        }    
+
+        if(aux == 2){
+            arq2 = fopen("pedidos.dat", "rb+");
+            if(arq2 == NULL){      
+                printf("Erro!");
+                system("pause");
+                return 0;
+            }
+            char cnpjped[20]={'\0'};
+            printf("cnpj do pedido que você deseja alterar:");
+            fgets(cnpjped, sizeof(cnpjped), stdin);
+            cnpjped[strcspn(cnpjped, "\n")] = '\0';
+            while(fread(&pedido, sizeof(pedidos), 1, arq2) == 1){
+                if(strcmp(pedido.cnpj, cnpjped) == 0){
+                    fseek(arq2, -sizeof(pedidos), SEEK_CUR);
+                    inserirpedido(arq2);
+                    fclose(arq2);
+                    break;
+                }
+            }
+        }
+
+        if(aux == 3){
+            FILE *arqaux = fopen("arqaux2.dat", "wb");
+            arq2 = fopen("pedidos.dat", "rb");
+            if(arq2 == NULL || arqaux == NULL){      
+                printf("Erro!");
+                system("pause");
+                return 0;
+            }
+            char cnpjpedido[20]={'\0'};
+            printf("cnpj do pedido que você deseja excluir:");
+            fgets(cnpjpedido, sizeof(cnpjpedido), stdin);
+            cnpjpedido[strcspn(cnpjpedido, "\n")] = '\0';
+            while(fread(&pedido, sizeof(pedidos), 1, arq2) == 1){
+                if(strcmp(pedido.cnpj, cnpjpedido) != 0){
+                    fwrite(&pedido, sizeof(pedidos), 1, arqaux);
+                }
+            }
+            fclose(arq2);
+            fclose(arqaux);
+            remove("pedidos.dat");
+            rename("arqaux2.dat", "pedidos.dat");
+        }
+
+        if(aux == 4){
+
+            arq2 = fopen("pedidos.dat", "rb");
+            if(arq2 == NULL){      
+                printf("Erro!");
+                system("pause");
+                return 0;
+            }
+            printf("1 - Todos os pedidos feitos por um cliente\n");
+            printf("2 - Todos os pedidos; realizados no intervalo entre  duas datas\n");
+            printf("3 - Pedidos Entregues a partir de uma data de entrada do mesmo\n");
+            printf("4 - Pedidos em Aberto (tanto os que estão no prazo quanto os que não estão no prazo)\n");
+            printf("5 - Média mensal de valores comprados pelo cliente\n");
+            scanf("%d",&opcao);
+            getchar();
+
+            if(opcao == 1){
+                char cnpjped[20]={'\0'};
+                printf("cnpj do cliente que fez o pedido que você deseja consultar:");
+                fgets(cnpjped, sizeof(cnpjped), stdin);
+                cnpjped[strcspn(cnpjped, "\n")] = '\0';
+                while(fread(&pedido, sizeof(pedidos), 1, arq2) == 1 ){
+                    if(strcmp(pedido.cnpj, cnpjped) == 0){
+                        consultar(pedido);
+                        fclose(arq2);
+                        break;
+                    }
+                }
+            }
+
+            else if(opcao == 2){
+                int dia1, mes1, ano1;
+                int dia2, mes2, ano2;
+                int total1, total2;
+                printf("digite  dia, mês e ano inicial:");
+                scanf("%d %d %d", &dia1, &mes1, &ano1);
+                printf("digite  dia, mês e ano final:");
+                scanf("%d %d %d", &dia2, &mes2, &ano2);
+                total1 = ano1 * 10000 + mes1 * 100 + dia1;
+                total2   = ano2 * 10000 + mes2 * 100 + dia2;
+
+                while(fread(&pedido, sizeof(pedidos), 1, arq2) == 1 ){
+                    int diap, mesp, anop, totalp;
+                    sscanf(pedido.datpedido, "%d/%d/%d", &diap, &mesp, &anop);
+                    totalp = anop * 10000 + mesp * 100 + diap;
+
+                    if(totalp >= total1 && totalp <= total2){
+                        consultar(pedido);
+                    }
+                }
+                fclose(arq2);
+            }
+
+            else if(opcao == 3){
+                int dia, mes, ano;
+                int total;
+                printf("digite  dia, mês e ano da data de entrega:");
+                scanf("%d %d %d", &dia, &mes, &ano);
+                total = ano * 10000 + mes * 100 + dia;
+
+                while(fread(&pedido, sizeof(pedidos), 1, arq2) == 1 ){
+                    int diap, mesp, anop, totalp;
+                    sscanf(pedido.datentrega, "%d/%d/%d", &diap, &mesp, &anop);
+                    totalp = anop * 10000 + mesp * 100 + diap;
+
+                    if(totalp >= total){
+                        consultar(pedido);
+                    }
+                }
+                fclose(arq2);
+            }
+
+            else if(opcao == 4){
+                int dia, mes, ano;
+                int total;
+                printf("digite  dia, mês e ano atual:");
+                scanf("%d %d %d", &dia, &mes, &ano);
+                total = ano * 10000 + mes * 100 + dia;
+
+                while(fread(&pedido, sizeof(pedidos), 1, arq2) == 1 ){
+                    int diap, mesp, anop, totalp, diaprev;
+                    sscanf(pedido.datentrega, "%d/%d/%d", &diap, &mesp, &anop);
+                    diaprev = diap + pedido.preventrega;
+
+                    while(diaprev > 30){
+                        diaprev -= 30;
+                        mesp++;
+                        if(mesp > 12){
+                            mesp = 1;
+                            anop++;
+                        }
+                    }
+                    totalp = anop * 10000 + mesp * 100 + diaprev;
+
+                    if(totalp >= total){
+                        consultar(pedido);
+                    }
+                }
+                fclose(arq2);
+            }
+
+            else if(opcao == 5){
+                char cnpjped[20]={'\0'};
+                printf("cnpj do cliente quer saber a media mensal:");
+                fgets(cnpjped, sizeof(cnpjped), stdin);
+                cnpjped[strcspn(cnpjped, "\n")] = '\0';
+                float totalmes[12] = {0};
+                int mesmarcado[12] = {0};     
+                int aux = 0;
+
+                while(fread(&pedido, sizeof(pedidos), 1, arq2) == 1 ){
+                    if(strcmp(pedido.cnpj, cnpjped) == 0){
+                        int dia, mes, ano;
+                        sscanf(pedido.datpedido, "%d/%d/%d", &dia, &mes, &ano);
+                        if(mes >= 1 && mes <= 12){
+                            totalmes[mes - 1] += pedido.totalped;
+                            mesmarcado[mes - 1] = 1;
+                        }
+                        aux = 1;
+                    }
+                }
+                fclose(arq2);
+
+                float soma = 0;
+                int mesesped = 0;
+                if(aux > 0){
+                    for(int i = 0; i < 12; i++){
+                        if(mesmarcado[i] != 0){
+                            soma += totalmes[i];
+                            mesesped++;
+                        }
+                    }
+                } 
+                else{
+                    printf("Nenhum pedido encontrado para esse CNPJ.\n");
+                    break;
+                }
+
+                if(mesesped > 0){
+                    float media = soma / mesesped;
+                    printf("Média mensal de compras do cliente %s: R$ %.2f\n", cnpjped, media);
+                } 
+
+            }    
+
+            else{
+                break;
+            }
+
+        }
+
+        printf("arquivo pedido(digite): 0-nenhum, 1-inserir, 2-alterar, 3-excluir, 4-consultar\n");
+        scanf("%d",&aux);
+        getchar();
+    }
+   
+    return 0;
+}
+
+void inserircliente(FILE *arq1){
+
+    clientes cliente;
+
+    printf("cnpj:");
+    fgets(cliente.cnpj, sizeof(cliente.cnpj), stdin);
+    cliente.cnpj[strcspn(cliente.cnpj, "\n")] = '\0';
+    printf("nome:");
+    fgets(cliente.nome, sizeof(cliente.nome), stdin);
+    cliente.nome[strcspn(cliente.nome, "\n")] = '\0';
+    printf("razão social:");
+    fgets(cliente.razsocial, sizeof(cliente.razsocial), stdin);
+    cliente.razsocial[strcspn(cliente.razsocial, "\n")] = '\0';
+    printf("endereço:");
+    fgets(cliente.endereco, sizeof(cliente.endereco), stdin);
+    cliente.endereco[strcspn(cliente.endereco, "\n")] = '\0';
+    printf("inscrição:");
+    fgets(cliente.inscricao, sizeof(cliente.inscricao), stdin);
+    cliente.inscricao[strcspn(cliente.inscricao, "\n")] = '\0';
+    if(cliente.inscricao[0] == '\0'){
+        strcpy(cliente.inscricao, "ISENTO");
+    }
+    printf("telefone:");
+    fgets(cliente.tel, sizeof(cliente.tel), stdin);
+    cliente.tel[strcspn(cliente.tel, "\n")] = '\0';
+    printf("email:");
+    fgets(cliente.email, sizeof(cliente.email), stdin);
+    cliente.email[strcspn(cliente.email, "\n")] = '\0';
+    printf("contato(nome):");
+    fgets(cliente.contato, sizeof(cliente.contato), stdin);
+    cliente.contato[strcspn(cliente.contato, "\n")] = '\0';
+
+    fwrite(&cliente, sizeof(clientes), 1, arq1);
+
+}
+
+void inserirpedido(FILE *arq2){
+    float valor;
+
+    pedidos pedido;
+
+    printf("numero pedido:");
+    scanf("%d", &pedido.numpedido);
+    getchar();
+    printf("cnpj(cliente que fez o pedido):");
+    fgets(pedido.cnpj, sizeof(pedido.cnpj), stdin);
+    pedido.cnpj[strcspn(pedido.cnpj, "\n")] = '\0';
+    printf("data do pedido:");
+    fgets(pedido.datpedido, sizeof(pedido.datpedido), stdin);
+    pedido.datpedido[strcspn(pedido.datpedido, "\n")] = '\0';
+    printf("data da entrega:");
+    fgets(pedido.datentrega, sizeof(pedido.datentrega), stdin);
+    pedido.datentrega[strcspn(pedido.datentrega, "\n")] = '\0';
+    printf("número de dias previstos para a entrega do pedido:");
+    scanf("%d",&pedido.preventrega);
+    getchar();
+    pedido.totalped=0;
+    for(int i=0; i<6; i++){
+        printf("descrição do item %d:",i+1);
+        fgets(pedido.item[i].descricao, sizeof(pedido.item[i].descricao), stdin);
+        pedido.item[i].descricao[strcspn(pedido.item[i].descricao, "\n")] = '\0';
+        printf("quantidade pedida do item %d:",i+1);
+        scanf("%d",&pedido.item[i].quantidade);
+        getchar();
+        printf("valor do item %d:",i+1);
+        scanf("%f",&valor);
+        pedido.totalped += valor * pedido.item[i].quantidade;
+    }
+    printf("forma de Pagamento(a vista, duplicata):");
+    fgets(pedido.pagamento, sizeof(pedido.pagamento), stdin);
+    pedido.pagamento[strcspn(pedido.pagamento, "\n")] = '\0';
+
+    fwrite(&pedido, sizeof(pedidos), 1, arq2);
+
+}
+
+void consultar(pedidos pedido){
+
+    printf("NÚMERO DO PEDIDO: %d", pedido.numpedido);
+    printf("CNPJ: %s\n", pedido.cnpj);
+    printf("DATA DO PEDIDO: %s\n", pedido.datpedido);
+    printf("DATA DA ENTREGA: %s\n", pedido.datentrega);
+    printf("PREVISÃO DE ENTREGA: %d\n", pedido.preventrega);
+    for(int i=0; i<6; i++){
+        printf("DESCRIÇÃO DO ITEM %d: %s\n", i+1, pedido.item[i].descricao);
+        printf("QUANTIDADE DO ITEM %d: %d\n", i+1, pedido.item[i].quantidade);
+    }
+    printf("TOTAL DO PEDIDO: %.2f\n", pedido.totalped);
+    printf("pagamento: %s\n", pedido.pagamento);
+}
