@@ -1,0 +1,45 @@
+#include <stdio.h>
+
+
+int main(){
+    float md;
+    int umr=0, cinqcent=0, vintcent=0, dezcent=0, cinccent=0, umcent=0;
+    
+    printf("Escolha o valor que você deseja converter para a menor quantidade de moedas necessárias:");
+    scanf("%f",&md);
+    
+    while(md>=1){
+        umr++;
+        md-=1;
+    }
+    while(md>=0.5){
+        cinqcent++;
+        md-=0.5;
+    }
+    while(md>=0.25){
+        vintcent++;
+        md-=0.25;
+    }
+    while(md>=0.1){
+        dezcent++;
+        md-=0.1;
+    }
+    while(md>=0.05){
+        cinccent++;
+        md-=0.05;
+    }
+    while(md>=0.01){
+        umcent++;
+        md-=0.01;
+    }
+    
+    printf("%d moedas de 1,00",umr);
+    printf("\n%d moedas de 0,50",cinqcent);
+    printf("\n%d modas de 0,25",vintcent);
+    printf("\n%d moedas de 0,10",dezcent);
+    printf("\n%d moedas de 0,05",cinccent);
+    printf("\n%d moedas de 0,01",umcent);
+
+
+    return 0;
+}
