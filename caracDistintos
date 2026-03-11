@@ -1,0 +1,27 @@
+#include <stdio.h>
+
+
+int main(){
+    
+    char vet[80]={'\0'};
+    int i=0, soma=0;
+    int aux[256]={0};
+    
+    printf("Digite algo:");
+    fgets(vet, sizeof(vet), stdin);
+    
+    while ((vet[i] != '\0') && (vet[i] != '\n')){
+        
+        aux[(unsigned char) vet[i]]=1;
+        i++;
+    }  
+    
+    for(int j=0; j<=256; j++){
+        if(aux[j] == 1){
+            soma+=1;
+        }
+    }
+    printf("o número de caracteres distintos é:%d",soma);
+    
+    return 0;
+}
