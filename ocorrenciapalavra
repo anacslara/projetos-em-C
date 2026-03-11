@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <string.h>
+
+
+typedef struct{
+      char frase[15];
+      int cont;
+   }palavra;
+   
+void sep_palavra(char aux1[], char aux2[], int *i);
+
+
+int main(){
+    
+    char vet[80]={'\0'};
+    int i = 0;
+    
+    palavra contador[15];
+    
+    for(int j=0; j<15; j++){
+        contador[j].frase[0]='\0';
+        contador[j].cont=0;
+    }
+    
+    printf("Digite uma frase:");
+    fgets(vet, sizeof(vet), stdin);
+    
+    for(int k=0; k<15; k++){
+        char vetaux[20]={'\0'};
+        sep_palavra(vet, vetaux, &i);
+        
+        for(int l=0; l<15; l++){
+            if((strcmp(contador[l].frase,vetaux)) == 0){
+                contador[l].cont++;
+                break;
+            }
+            if(contador[l].frase[0] == '\0'){
+                strcpy(contador[l].frase,vetaux);
+                contador[l].cont++;
+                break;
+            }
+        }
+    }
+    
+    for(int j=0; j<15; j++){
+        if(contador[j].frase[0] == '\0') break;
+        printf("a ocorrência da palavra %s foi de %d\n", contador[j].frase, contador[j].cont);
+    }
+    
+    return 0;
+}
+
+
+
+
+
+
+void sep_palavra(char aux1[], char aux2[], int *i){
+    
+    int j=0;
+    
+    while(aux1[*i] == ' '){
+        (*i)++;
+    }   
+    while((aux1[*i] != ' ') && (aux1[*i] != '\n') && (aux1[*i] != '\0')){
+        aux2[j] = aux1[*i];
+        (*i)++;
+        j++;
+    }
+    aux2[j]='\0';
+}
