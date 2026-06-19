@@ -17,10 +17,10 @@ int main(){
     }
     
     if (soma == 2){
-        printf("o número é primo");
+        printf("o número %d é primo", num);
     }
     else
-        printf("o número não é primo");
+        printf("o número %d não é primo", num);
     
 
 
